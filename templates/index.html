@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1 id="scoreboard-title">Scoreboard</h1>
+        <form id="title-form">
+            <input type="text" id="title-input" placeholder="Set scoreboard title">
+            <button type="submit">Update Title</button>
+        </form>
+        <form id="add-player-form">
+            <input type="text" id="player-name" placeholder="Add player name" required>
+            <button type="submit">Add Player</button>
+        </form>
+        <table id="scoreboard-table">
+            <thead>
+                <tr>
+                    <th>Player</th>
+                    <th>Score</th>
+                    <th>Tags</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Players will be rendered here -->
+            </tbody>
+        </table>
+    </div>
+    <script src="/static/app.js"></script>
+</body>
+</html> 
