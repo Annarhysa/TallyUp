@@ -97,17 +97,17 @@ st.markdown("""
     
     /* Custom styling for player rows */
     .player-row {
-        background: #e3e8ff;
+        background: #fff9db;
         padding: 0.5rem 0.75rem;
         border-radius: 6px;
         margin-bottom: 0.25rem;
-        border: 1px solid #bfc8f8;
+        border: 1px solid #ffe066;
         transition: all 0.2s ease;
     }
     
     .player-row:hover {
-        background: #f3e8ff;
-        box-shadow: 0 2px 4px rgba(102, 126, 234, 0.10);
+        background: #fffbe6;
+        box-shadow: 0 2px 4px rgba(255, 224, 102, 0.10);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -304,36 +304,42 @@ def main():
             leaderboard = get_leaderboard()
             
             for i, player in enumerate(leaderboard):
-                # Create compact single-line player card
-                with st.container():
-                    # Single line layout: Name | Score | Edit | Delete
-                    player_col1, player_col2, player_col3, player_col4 = st.columns([3, 1, 1, 1])
-                    
-                    with player_col1:
-                        # Player name and tags in one line
-                        name_with_tags = f"**#{i+1} {player.get('name', '')}**"
-                        if player.get('tags'):
-                            tags_text = " ".join([f"`{tag}`" for tag in player.get('tags', [])])
-                            name_with_tags += f" {tags_text}"
-                        st.markdown(name_with_tags)
-                    
-                    with player_col2:
-                        st.markdown(f"**{player.get('score', 0)}**")
-                    
-                    with player_col3:
-                        if st.button("Edit", key=f"edit_{player.get('name', '')}", use_container_width=True):
-                            st.session_state[f"editing_{player.get('name', '')}"] = True
-                    
-                    with player_col4:
-                        if st.button("🗑️", key=f"delete_{player.get('name', '')}", help="Delete player", use_container_width=True):
-                            remove_player(player.get('name', ''))
-                            st.rerun()
-                
+                tags_html = ""
+                if player.get('tags'):
+                    tags_html = " ".join([
+                        f"<span class='tag-badge'>{tag}</span>" for tag in player.get('tags', [])
+                    ])
+                cols = st.columns([3, 1, 1, 1])
+                with cols[0]:
+                    st.markdown(
+                        f"""
+                        <div class='player-row' style='display:flex;align-items:center;background:#fff9db;border:1px solid #ffe066;border-radius:6px;padding:0.5rem 0.75rem;margin-bottom:0.25rem;'>
+                            <span style='font-weight:500;color:#2c3e50;'>#{i+1} {player.get('name', '')} {tags_html}</span>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+                with cols[1]:
+                    st.markdown(
+                        f"""
+                        <div class='player-row' style='background:#fff9db;border:1px solid #ffe066;border-radius:6px;padding:0.5rem 0.75rem;margin-bottom:0.25rem;text-align:center;'>
+                            <span style='font-weight:bold;color:#667eea;font-size:1.1rem;'>{player.get('score', 0)}</span>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+                with cols[2]:
+                    if st.button("Edit", key=f"edit_{player.get('name', '')}", use_container_width=True):
+                        st.session_state[f"editing_{player.get('name', '')}"] = True
+                with cols[3]:
+                    if st.button("🗑️", key=f"delete_{player.get('name', '')}", help="Delete player", use_container_width=True):
+                        remove_player(player.get('name', ''))
+                        st.rerun()
+
                 # Edit panel
                 if st.session_state.get(f"editing_{player.get('name', '')}", False):
                     with st.expander(f"Edit {player.get('name', '')}", expanded=True):
                         edit_col1, edit_col2, edit_col3 = st.columns([1, 2, 1])
-                        
                         with edit_col1:
                             new_score = st.number_input(
                                 "Score", 
@@ -344,7 +350,6 @@ def main():
                             if new_score != player.get('score', 0):
                                 update_score(player.get('name', ''), new_score)
                                 st.rerun()
-                        
                         with edit_col2:
                             TAGS = ['🧠 Mind Reader', '🎭 Master of Mystery', '😶 Poker Face']
                             new_tags = st.multiselect(
@@ -356,7 +361,6 @@ def main():
                             if set(new_tags) != set(player.get('tags', [])):
                                 update_tags(player.get('name', ''), new_tags)
                                 st.rerun()
-                        
                         with edit_col3:
                             if st.button("Save", key=f"save_{player.get('name', '')}"):
                                 st.session_state[f"editing_{player.get('name', '')}"] = False
@@ -364,7 +368,6 @@ def main():
                             if st.button("Cancel", key=f"cancel_{player.get('name', '')}"):
                                 st.session_state[f"editing_{player.get('name', '')}"] = False
                                 st.rerun()
-                
                 st.markdown("---")
         else:
             st.info("🎯 No players yet. Add some players to get started!")
