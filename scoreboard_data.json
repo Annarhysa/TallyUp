@@ -2,29 +2,23 @@
   "title": "Game Night Championship",
   "players": [
     {
-      "name": "Vipin",
-      "score": 0,
-      "tags": [],
-      "created_at": "2025-07-28T12:02:22.179606"
-    },
-    {
       "name": "sum",
-      "score": 0,
+      "score": 2,
       "tags": [],
       "created_at": "2025-07-28T12:04:57.870118"
     },
     {
-      "name": "p",
-      "score": 0,
+      "name": "Vipin",
+      "score": 3,
       "tags": [],
-      "created_at": "2025-07-28T12:05:10.763750"
+      "created_at": "2025-07-28T14:41:47.451317"
     },
     {
-      "name": "k",
-      "score": 0,
+      "name": "l",
+      "score": 3,
       "tags": [],
-      "created_at": "2025-07-28T12:05:18.693636"
+      "created_at": "2025-07-28T14:41:52.128110"
     }
   ],
-  "last_updated": "2025-07-28T12:05:18.693653"
+  "last_updated": "2025-07-28T14:42:18.121365"
 }

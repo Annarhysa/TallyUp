@@ -97,17 +97,17 @@ st.markdown("""
     
     /* Custom styling for player rows */
     .player-row {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        background: #e3e8ff;
         padding: 0.5rem 0.75rem;
         border-radius: 6px;
         margin-bottom: 0.25rem;
-        border: 1px solid #dee2e6;
+        border: 1px solid #bfc8f8;
         transition: all 0.2s ease;
     }
     
     .player-row:hover {
-        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background: #f3e8ff;
+        box-shadow: 0 2px 4px rgba(102, 126, 234, 0.10);
     }
 </style>
 """, unsafe_allow_html=True)
