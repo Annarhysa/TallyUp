@@ -3,34 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scoreboard</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>Scoreboard Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1 id="scoreboard-title">Scoreboard</h1>
-        <form id="title-form">
-            <input type="text" id="title-input" placeholder="Set scoreboard title">
+        <header class="main-header">
+            <h1>🏆 {{ title }}</h1>
+            <p>Professional Scoreboard Dashboard</p>
+        </header>
+        
+        <div class="content">
+            <div class="main-content">
+                <div class="leaderboard-section">
+                    <h2>🏅 Leaderboard</h2>
+                    <div id="leaderboard">
+                        {% if players %}
+                            {% for player in players %}
+                            <div class="player-card" data-player="{{ player.name }}">
+                                <div class="player-info">
+                                    <h3>#{{ loop.index }} {{ player.name }}</h3>
+                                    <div class="tags">
+                                        {% for tag in player.tags %}
+                                        <span class="tag-badge">{{ tag }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="score-section">
+                                    <div class="score-display">{{ player.score }}</div>
+                                    <small>points</small>
+                                </div>
+                                <div class="player-controls">
+                                    <button class="edit-btn" onclick="toggleEdit('{{ player.name }}')">Edit</button>
+                                    <button class="delete-btn" onclick="deletePlayer('{{ player.name }}')">Delete</button>
+                                </div>
+                            </div>
+                            
+                            <div id="edit-{{ player.name }}" class="edit-panel" style="display: none;">
+                                <form class="edit-form" onsubmit="updatePlayer(event, '{{ player.name }}')">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Score:</label>
+                                            <input type="number" name="score" value="{{ player.score }}" min="0">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Tags:</label>
+                                            <select name="tags" multiple>
+                                                <option value="🧠 Mind Reader" {% if '🧠 Mind Reader' in player.tags %}selected{% endif %}>🧠 Mind Reader</option>
+                                                <option value="🎭 Master of Mystery" {% if '🎭 Master of Mystery' in player.tags %}selected{% endif %}>🎭 Master of Mystery</option>
+                                                <option value="😶 Poker Face" {% if '😶 Poker Face' in player.tags %}selected{% endif %}>😶 Poker Face</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <button type="submit">Update</button>
+                                            <button type="button" onclick="toggleEdit('{{ player.name }}')">Cancel</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="no-players">
+                                <p>🎯 No players yet. Add some players to get started!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="controls-section">
+                    <h3>🎮 Controls</h3>
+                    
+                    <form class="add-player-form" onsubmit="addPlayer(event)">
+                        <input type="text" id="new-player-name" placeholder="Player name" required>
+                        <button type="submit">➕ Add Player</button>
+                    </form>
+                    
+                    <form class="title-form" onsubmit="updateTitle(event)">
+                        <input type="text" id="new-title" placeholder="Dashboard title" value="{{ title }}">
             <button type="submit">Update Title</button>
         </form>
-        <form id="add-player-form">
-            <input type="text" id="player-name" placeholder="Add player name" required>
-            <button type="submit">Add Player</button>
-        </form>
-        <table id="scoreboard-table">
-            <thead>
-                <tr>
-                    <th>Player</th>
-                    <th>Score</th>
-                    <th>Tags</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Players will be rendered here -->
-            </tbody>
-        </table>
+                    
+                    <div class="danger-zone">
+                        <h4>⚠️ Danger Zone</h4>
+                        <button class="reset-btn" onclick="resetAll()">🗑️ Reset All Data</button>
+                    </div>
+                </div>
+                
+                <div class="stats-section">
+                    <h3>📊 Statistics</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">{{ stats.total_players }}</div>
+                            <div class="stat-label">Players</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">{{ stats.total_score }}</div>
+                            <div class="stat-label">Total Score</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">{{ "%.1f"|format(stats.avg_score) }}</div>
+                            <div class="stat-label">Average Score</div>
+                        </div>
+                    </div>
+                    <p class="last-updated">Last Updated: {{ stats.last_updated }}</p>
+                </div>
+                
+                <div class="top-performers">
+                    <h3>🏆 Top Performers</h3>
+                    {% if players %}
+                        {% for player in players[:3] %}
+                        <div class="performer-card">
+                            <h4>{{ ['🥇', '🥈', '🥉'][loop.index0] }} {{ player.name }}</h4>
+                            <div class="performer-score">{{ player.score }} pts</div>
+                            <div class="performer-tags">
+                                {% for tag in player.tags %}
+                                <span class="tag-badge">{{ tag }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>📊 Add players to see top performers!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
-    <script src="/static/app.js"></script>
+    
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html> 

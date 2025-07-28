@@ -1,122 +1,198 @@
-const TAGS = [
-    '🧠 Mind Reader',
-    '🎭 Master of Mystery',
-    '🧊 Poker Face'
-];
+// Scoreboard JavaScript functionality
 
-function fetchScoreboard() {
-    fetch('/api/scoreboard')
-        .then(res => res.json())
-        .then(data => renderScoreboard(data));
+// Toggle edit panel for a player
+function toggleEdit(playerName) {
+    const editPanel = document.getElementById(`edit-${playerName}`);
+    if (editPanel.style.display === 'none') {
+        editPanel.style.display = 'block';
+    } else {
+        editPanel.style.display = 'none';
+    }
 }
 
-function renderScoreboard(data) {
-    document.getElementById('scoreboard-title').textContent = data.title;
-    const tbody = document.querySelector('#scoreboard-table tbody');
-    tbody.innerHTML = '';
-    data.players.forEach(player => {
-        const tr = document.createElement('tr');
-        // Player name and tags
-        const nameTd = document.createElement('td');
-        nameTd.innerHTML = `${player.tags.map(t => `<span class='tag'>${t}</span>`).join(' ')} <b>${player.name}</b>`;
-        tr.appendChild(nameTd);
-        // Score (editable)
-        const scoreTd = document.createElement('td');
-        scoreTd.innerHTML = `<input type='number' class='score-input' value='${player.score}' min='0' style='width:60px;'>`;
-        scoreTd.querySelector('input').addEventListener('change', (e) => {
-            updateScore(player.name, parseInt(e.target.value, 10));
+// Add a new player
+async function addPlayer(event) {
+    event.preventDefault();
+    const playerName = document.getElementById('new-player-name').value.trim();
+    
+    if (!playerName) return;
+    
+    try {
+        const response = await fetch('/add_player', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name: playerName })
         });
-        tr.appendChild(scoreTd);
-        // Tags (select)
-        const tagsTd = document.createElement('td');
-        TAGS.forEach(tag => {
-            const label = document.createElement('label');
-            label.style.marginRight = '6px';
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.className = 'tag-select';
-            checkbox.checked = player.tags.includes(tag);
-            checkbox.addEventListener('change', () => {
-                let newTags = [...player.tags];
-                if (checkbox.checked) {
-                    if (!newTags.includes(tag)) newTags.push(tag);
+        
+        if (response.ok) {
+            window.location.reload();
                 } else {
-                    newTags = newTags.filter(t => t !== tag);
-                }
-                updateTags(player.name, newTags);
-            });
-            label.appendChild(checkbox);
-            label.appendChild(document.createTextNode(tag));
-            tagsTd.appendChild(label);
+            alert('Error adding player');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error adding player');
+    }
+}
+
+// Update player information
+async function updatePlayer(event, playerName) {
+    event.preventDefault();
+    const form = event.target;
+    const score = parseInt(form.score.value);
+    const tags = Array.from(form.tags.selectedOptions).map(option => option.value);
+    
+    try {
+        const response = await fetch('/update_player', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: playerName,
+                score: score,
+                tags: tags
+            })
         });
-        tr.appendChild(tagsTd);
-        // Actions
-        const actionsTd = document.createElement('td');
-        const delBtn = document.createElement('button');
-        delBtn.textContent = 'Delete';
-        delBtn.className = 'action-btn';
-        delBtn.onclick = () => deletePlayer(player.name);
-        actionsTd.appendChild(delBtn);
-        tr.appendChild(actionsTd);
-        tbody.appendChild(tr);
+        
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert('Error updating player');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error updating player');
+    }
+}
+
+// Delete a player
+async function deletePlayer(playerName) {
+    if (!confirm(`Are you sure you want to delete ${playerName}?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/delete_player', {
+        method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name: playerName })
+        });
+        
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert('Error deleting player');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error deleting player');
+    }
+}
+
+// Update dashboard title
+async function updateTitle(event) {
+    event.preventDefault();
+    const newTitle = document.getElementById('new-title').value.trim();
+    
+    if (!newTitle) return;
+    
+    try {
+        const response = await fetch('/update_title', {
+        method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ title: newTitle })
+        });
+        
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert('Error updating title');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error updating title');
+    }
+}
+
+// Reset all data
+async function resetAll() {
+    if (!confirm('Are you sure you want to reset all data? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/reset_all', {
+        method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert('Error resetting data');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error resetting data');
+    }
+}
+
+// Auto-refresh statistics every 30 seconds
+setInterval(() => {
+    fetch('/get_stats')
+        .then(response => response.json())
+        .then(data => {
+            // Update statistics without full page reload
+            const statCards = document.querySelectorAll('.stat-value');
+            if (statCards.length >= 3) {
+                statCards[0].textContent = data.total_players;
+                statCards[1].textContent = data.total_score;
+                statCards[2].textContent = data.avg_score.toFixed(1);
+            }
+        })
+        .catch(error => console.error('Error updating stats:', error));
+}, 30000);
+
+// Initialize tooltips and other UI enhancements
+document.addEventListener('DOMContentLoaded', function() {
+    // Add smooth scrolling
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
     });
-}
-
-function addPlayer(name) {
-    fetch('/api/scoreboard/player', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name })
-    }).then(res => res.json()).then(fetchScoreboard);
-}
-
-function updateScore(name, score) {
-    fetch(`/api/scoreboard/player/${encodeURIComponent(name)}/score`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ score })
-    }).then(res => res.json()).then(fetchScoreboard);
-}
-
-function updateTags(name, tags) {
-    fetch(`/api/scoreboard/player/${encodeURIComponent(name)}/tags`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tags })
-    }).then(res => res.json()).then(fetchScoreboard);
-}
-
-function deletePlayer(name) {
-    fetch(`/api/scoreboard/player/${encodeURIComponent(name)}`, {
-        method: 'DELETE'
-    }).then(res => res.json()).then(fetchScoreboard);
-}
-
-function setTitle(title) {
-    fetch('/api/scoreboard/title', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title })
-    }).then(res => res.json()).then(fetchScoreboard);
-}
-
-document.getElementById('add-player-form').addEventListener('submit', function(e) {
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + N to focus on new player input
+        if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
     e.preventDefault();
-    const name = document.getElementById('player-name').value.trim();
-    if (name) {
-        addPlayer(name);
-        document.getElementById('player-name').value = '';
+            document.getElementById('new-player-name').focus();
+        }
+        
+        // Escape to close edit panels
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.edit-panel').forEach(panel => {
+                panel.style.display = 'none';
+            });
+        }
+    });
+    
+    // Auto-focus on new player input when page loads
+    const newPlayerInput = document.getElementById('new-player-name');
+    if (newPlayerInput) {
+        newPlayerInput.focus();
     }
-});
-
-document.getElementById('title-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const title = document.getElementById('title-input').value.trim();
-    if (title) {
-        setTitle(title);
-        document.getElementById('title-input').value = '';
-    }
-});
-
-// Initial load
-fetchScoreboard(); 
+}); 
